@@ -1,35 +1,47 @@
 # Inbox demo data
 
-A fabricated dataset of **65 messages** (50 email, 15 Slack)
+A fabricated dataset of **117 messages** (50 email, 67 Slack)
 for developing and demoing a unified inbox.
 
 Every message here is made up. There are no real people, addresses, companies,
-or conversations in it, and it was never derived from anyone's mailbox. It
-exists so an inbox UI can be built and shown without touching real mail.
+or conversations in it, and it was never derived from anyone's mailbox or
+workspace. It exists so an inbox can be built and shown without touching real
+mail.
 
 ## What it covers
 
 The set is written to exercise the shapes an inbox actually has to handle, not
-just the common ones:
+just the common ones.
 
-- **Both sources.** Email with real HTML bodies, and Slack messages with
-  channels, DMs, externally-shared channels, and reply counts.
-- **Six triage buckets**, the ones a person sorts by rather than the ones a mail
-  provider labels by:
+**Six triage buckets** -- the ones a person sorts by, rather than the ones a
+mail provider labels by:
 
 | Bucket | Count | What it means |
 |---|---|---|
-| Need response | 10 | A person is waiting on you |
-| From boss | 7 | Sent by your manager |
-| External | 8 | A real person outside your company |
-| Ack | 3 | Worth seeing, nothing owed |
-| Alerts | 24 | A machine sent it |
-| Unimportant | 13 | Recurring bulk mail from strangers |
+| Need response | 17 | A person is waiting on you |
+| From boss | 13 | Sent by your manager |
+| External | 13 | A real person outside your company |
+| Ack | 20 | Worth seeing, nothing owed |
+| Alerts | 36 | A machine sent it |
+| Unimportant | 18 | Recurring bulk mail from strangers |
 
-- **Edge cases worth testing:** messages with attachments, multi-message
-  threads, pending reminders (including one already overdue), package and
-  flight status data, senders with and without a `List-Unsubscribe` header, and
-  HTML bodies ranging from a plain paragraph to a full marketing template.
+The pair worth getting right is Ack and Unimportant. Ack is "I should see this";
+Unimportant is "I should never have received this". A colleague joking in
+`#random` is Ack. A vendor's third cold email this month is Unimportant. A
+system that collapses those two either buries your team's chatter with spam or
+refuses to let you unsubscribe from anything.
+
+**Slack, in the three shapes it comes in** -- 44 channel
+messages, 16 direct messages, and 7 in
+channels shared with another company. Only 17 of the 67 name
+you; the other 50 are ambient chatter, which is the ratio
+that makes triage hard and the reason `mentions_you` exists as a field.
+
+**Edge cases worth testing:** attachments, threads with reply counts, pending
+reminders including one already overdue, package and flight status, senders with
+and without a `List-Unsubscribe` header, an externally-shared channel where the
+sender is still a colleague, and HTML bodies ranging from one paragraph to a
+full marketing template.
 
 ## Shape
 
@@ -44,12 +56,13 @@ Each message is a flat object. The fields that carry meaning:
 | `subject`, `snippet` | Slack has no subject, so it repeats the channel |
 | `body_html` | Renderable HTML |
 | `date` | ISO 8601 with offset |
-| `unread`, `message_count` | |
+| `unread`, `message_count` | `message_count` is thread replies |
 | `attachments` | `name`, `size`, `type` |
 | `remind_at` | ISO timestamp, or `null` |
 | `unsubscribe_url` | Present only where a bulk sender would set the header |
 | `source_url` | Deep link back to Gmail or Slack |
 | `channel`, `channel_kind` | Slack only: `channel`, `dm`, or `connect` |
+| `mentions_you` | Slack only: were you named |
 | `assist` | Optional package/flight status |
 
 `now` at the top of the file is the reference clock the data was written
